@@ -12,20 +12,6 @@ This project implements an 8-bit ALU that performs eight different arithmetic, l
 - 8 selectable operations via a 3-bit `sel` control line
 - Registered (clocked) output for synchronous designs
 - Synchronous active-high reset
-- Fully simulated and verified with a self-checking testbench
-
-## Block Diagram
-
-```
-        A[7:0] ─────┐
-                     │
-        B[7:0] ─────┤   Combinational   result[7:0]   ┌──────────┐   Y[7:0]
-                     │──►    ALU Logic    ──────────►  │ Register │ ──────►
-        sel[2:0] ────┘      (case block)                │ (posedge │
-                                                          │  clk)    │
-        clk ─────────────────────────────────────────►  │          │
-        rst ─────────────────────────────────────────►  └──────────┘
-```
 
 ## Supported Operations
 
@@ -49,7 +35,8 @@ ALU_8bit_Verilog/
 ├── sim/
 │   └── tb_alu_8bit.v       # Testbench
 ├── docs/
-│   └── waveform.png        # Simulation waveform screenshot
+│   ├── waveform.png        # Simulation waveform screenshot
+│   └── schematic.png       # Elaborated RTL schematic
 ├── README.md
 ├── .gitignore
 └── LICENSE
@@ -80,23 +67,17 @@ iverilog -o alu_sim src/alu_8bit.v sim/tb_alu_8bit.v
 vvp alu_sim
 ```
 
-### Using EDA Playground
-Paste `alu_8bit.v` and `tb_alu_8bit.v` into separate files, select **Icarus Verilog** as the simulator, and run.
+## Simulation Waveform
 
-## Sample Simulation Output
+`sel` is swept through all 8 operation codes (0–7) with fixed operands `A = 0x0a`, `B = 0x05`. Because the ALU output `Y` is registered, each result appears on the clock edge following the corresponding `sel` value, demonstrating correct synchronous behavior across every operation.
 
-```
-time    sel   A     B    Y
-0       000   0     0    0
-15      000   15    10   25
-25      001   20    8    12
-35      010   240   15   0
-45      011   240   15   255
-55      100   170   85   255
-65      101   170   0    85
-75      110   1     0    2
-85      111   128   0    64
-```
+![Waveform](docs/waveform.png)
+
+## RTL Schematic
+
+Elaborated RTL view showing all eight operations (SUB, ADD, AND, OR, XOR, INV, LSHIFT, RSHIFT) computed in parallel, feeding into a `sel`-controlled multiplexer, with the selected result captured in a synchronous output register (`Y_reg`):
+
+![Schematic](docs/schematic.png)
 
 ## Target Device
 
